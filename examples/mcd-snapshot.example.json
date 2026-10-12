@@ -1,0 +1,50 @@
+{
+  "_note": "MCP 真实返回快照。所有来自麦当劳 MCP 的字段在此均为哨兵值 __FILL_FROM_<工具名>__。请用真实返回替换 —— 脚本遇到哨兵会报 MISSING_MCP_DATA 并指明要调哪个工具，绝不替你编造。category 取值限定：汉堡 / 小食 / 薯条 / 饮料 / 甜品（这是我们自己的分类口径，由模型按真实菜单归类后填入）。",
+  "store": {
+    "name": "__FILL_FROM_delivery-query-stores__",
+    "storeCode": "__FILL_FROM_delivery-query-stores__",
+    "beCode": "__FILL_FROM_delivery-query-stores__",
+    "beType": 6,
+    "orderType": 2
+  },
+  "addressId": "__FILL_FROM_delivery-query-addresses__",
+  "gmServiceCode": "__FILL_FROM_query-meal-assistance__",
+  "takeWayCode": null,
+  "meals": [
+    {
+      "code": "__FILL_FROM_query-meals__",
+      "name": "__FILL_FROM_query-meals__",
+      "priceFen": null,
+      "category": "汉堡",
+      "soldOut": false,
+      "desc": ""
+    },
+    {
+      "code": "__FILL_FROM_query-meals__",
+      "name": "__FILL_FROM_query-meals__",
+      "priceFen": null,
+      "category": "小食",
+      "soldOut": false,
+      "desc": ""
+    },
+    {
+      "code": "__FILL_FROM_query-meals__",
+      "name": "__FILL_FROM_query-meals__",
+      "priceFen": null,
+      "category": "饮料",
+      "soldOut": false,
+      "desc": ""
+    }
+  ],
+  "coupons": [],
+  "suggestClaimCoupons": false,
+  "fees": {
+    "deliveryFen": null,
+    "tablewareFen": 0
+  },
+  "nowTime": {
+    "date": "__FILL_FROM_now-time-info__",
+    "datetime": "__FILL_FROM_now-time-info__"
+  },
+  "priceResult": null
+}

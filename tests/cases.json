@@ -1,0 +1,1230 @@
+{
+  "_note": "A–D 为规范要求的验证用例，E1–E3 为致敏原黑名单补充用例。所有餐品 code / name / price 均为【占位测试数据】，不代表麦当劳真实菜单，仅用于验证脚本逻辑。断言由 scripts/run-cases.mjs 离线执行。",
+  "_meals_delivery": "外送场景共用菜单池，见各 case 的 snapshot",
+  "cases": [
+    {
+      "id": "A",
+      "title": "4 人办公室午餐外送：1 人不吃辣、1 人素食偏好、1 人只要饮料、1 人随意",
+      "request": {
+        "scene": "周五办公室午餐",
+        "diningMode": "delivery",
+        "headcount": 4,
+        "totalBudget": 150.0,
+        "location": {
+          "city": "广州市",
+          "keyword": "海珠区琶洲"
+        },
+        "shared": {
+          "enabled": true,
+          "budgetYuan": 30
+        },
+        "needTableware": true,
+        "useCoupons": true,
+        "couponConsent": false,
+        "confirmation": {
+          "saidConfirmOrder": false
+        },
+        "members": [
+          {
+            "name": "小王",
+            "avoid": [
+              "辣"
+            ],
+            "prefer": [
+              "牛肉"
+            ],
+            "drink": "可乐少冰",
+            "budgetCap": 45
+          },
+          {
+            "name": "小李",
+            "avoid": [],
+            "prefer": [
+              "蔬菜"
+            ],
+            "drink": "橙汁常温",
+            "budgetCap": 40
+          },
+          {
+            "name": "小赵",
+            "avoid": [],
+            "prefer": [],
+            "drinkOnly": true,
+            "drink": "可乐去冰",
+            "budgetCap": 20
+          },
+          {
+            "name": "小陈",
+            "prefer": [
+              "随意"
+            ],
+            "budgetCap": 40
+          }
+        ]
+      },
+      "snapshot": {
+        "store": {
+          "name": "[TEST]外送门店",
+          "storeCode": "0000001",
+          "beCode": "BE-T-1",
+          "beType": 6,
+          "orderType": 2
+        },
+        "addressId": "ADDR-T-1",
+        "gmServiceCode": "GM-T-1",
+        "meals": [
+          {
+            "code": "T-101",
+            "name": "[TEST]牛肉汉堡",
+            "priceFen": 3000,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-102",
+            "name": "[TEST]香辣鸡腿堡",
+            "priceFen": 2500,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": "含辣椒"
+          },
+          {
+            "code": "T-103",
+            "name": "[TEST]蔬菜沙拉堡",
+            "priceFen": 2600,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": "素食"
+          },
+          {
+            "code": "T-104",
+            "name": "[TEST]薯条",
+            "priceFen": 1200,
+            "category": "薯条",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-105",
+            "name": "[TEST]玉米杯",
+            "priceFen": 900,
+            "category": "小食",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-106",
+            "name": "[TEST]可乐",
+            "priceFen": 800,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-107",
+            "name": "[TEST]橙汁",
+            "priceFen": 900,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-108",
+            "name": "[TEST]咖啡",
+            "priceFen": 1000,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          }
+        ],
+        "coupons": [
+          {
+            "couponId": "C-T-1",
+            "couponCode": "CC-T-1",
+            "name": "[TEST]满100减10",
+            "thresholdFen": 10000,
+            "offFen": 1000,
+            "applicable": true
+          }
+        ],
+        "suggestClaimCoupons": false,
+        "fees": {
+          "deliveryFen": 900,
+          "tablewareFen": 100
+        },
+        "nowTime": {
+          "date": "2026-10-12",
+          "datetime": "2026-10-12T13:20:00"
+        },
+        "priceResult": {
+          "subtotalFen": 14200,
+          "discountFen": 1000,
+          "deliveryFen": 900,
+          "tablewareFen": 100,
+          "totalFen": 14200
+        }
+      },
+      "assert": [
+        {
+          "path": "members.length",
+          "equals": 4
+        },
+        {
+          "path": "diningMode",
+          "equals": "group_delivery",
+          "_why": "外送且人数≥3，自动升级为企业团餐通道"
+        },
+        {
+          "path": "orderable",
+          "isTrue": true
+        },
+        {
+          "memberStatus": {
+            "name": "小陈",
+            "equals": "pending"
+          },
+          "_why": "「随意」成员标注为待本人确认"
+        },
+        {
+          "memberStatus": {
+            "name": "小王",
+            "equals": "confirmed"
+          }
+        },
+        {
+          "allItemsOfCategory": {
+            "member": "小赵",
+            "category": "饮料"
+          },
+          "_why": "只要饮料的成员只拿到饮料"
+        },
+        {
+          "noItemMatching": {
+            "member": "小王",
+            "regex": "辣"
+          },
+          "_why": "不吃辣的成员不会被推辣味餐品"
+        },
+        {
+          "noDuplicateItems": true,
+          "_why": "同一人的组合内不出现重复餐品（「别点重复」）"
+        },
+        {
+          "path": "shared.enabled",
+          "isTrue": true
+        },
+        {
+          "path": "variants.preferred.label",
+          "equals": "首选方案"
+        },
+        {
+          "path": "variants.safer.label",
+          "equals": "更稳妥"
+        },
+        {
+          "path": "variants.richer.label",
+          "equals": "更丰富"
+        },
+        {
+          "path": "priceSource",
+          "equals": "calculate-price"
+        },
+        {
+          "path": "mayCreateOrder",
+          "isFalse": true,
+          "_why": "未收到「确认下单」，绝不放行"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "3 人到店自取，指定门店，其中 1 人对洋葱敏感",
+      "request": {
+        "scene": "周末到店自取",
+        "diningMode": "pickup",
+        "headcount": 3,
+        "totalBudget": 120.0,
+        "location": {
+          "city": "广州市",
+          "keyword": "天河区体育西路"
+        },
+        "shared": {
+          "enabled": false
+        },
+        "needTableware": false,
+        "confirmation": {
+          "saidConfirmOrder": false
+        },
+        "members": [
+          {
+            "name": "阿明",
+            "avoid": [],
+            "prefer": [
+              "牛肉"
+            ],
+            "drink": "可乐少冰",
+            "budgetCap": 45
+          },
+          {
+            "name": "阿珍",
+            "avoid": [
+              "洋葱"
+            ],
+            "allergy": true,
+            "riskNote": "对洋葱敏感",
+            "prefer": [
+              "鸡肉"
+            ],
+            "drink": "橙汁去冰",
+            "budgetCap": 40
+          },
+          {
+            "name": "阿强",
+            "prefer": [
+              "鱼肉"
+            ],
+            "drink": "咖啡常温",
+            "budgetCap": 40
+          }
+        ]
+      },
+      "snapshot": {
+        "store": {
+          "name": "[TEST]到店门店",
+          "storeCode": "0000002",
+          "beType": 1,
+          "orderType": 1
+        },
+        "takeWayCode": "TW-T-1",
+        "meals": [
+          {
+            "code": "T-201",
+            "name": "[TEST]牛肉汉堡",
+            "priceFen": 3000,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-202",
+            "name": "[TEST]洋葱鸡腿堡",
+            "priceFen": 2700,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": "含洋葱"
+          },
+          {
+            "code": "T-203",
+            "name": "[TEST]麦香鱼",
+            "priceFen": 2400,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-204",
+            "name": "[TEST]薯条",
+            "priceFen": 1200,
+            "category": "薯条",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-205",
+            "name": "[TEST]可乐",
+            "priceFen": 800,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-206",
+            "name": "[TEST]橙汁",
+            "priceFen": 900,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-207",
+            "name": "[TEST]咖啡",
+            "priceFen": 1000,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          }
+        ],
+        "coupons": [],
+        "fees": {
+          "deliveryFen": 0,
+          "tablewareFen": 0
+        },
+        "nowTime": {
+          "date": "2026-10-12",
+          "datetime": "2026-10-12T13:20:00"
+        },
+        "priceResult": null
+      },
+      "assert": [
+        {
+          "path": "store.beType",
+          "equals": 1
+        },
+        {
+          "path": "store.orderType",
+          "equals": 1
+        },
+        {
+          "path": "store.beCode",
+          "equals": null,
+          "_why": "到店自取不能传 beCode"
+        },
+        {
+          "path": "createOrderDraft.takeWayCode",
+          "equals": "TW-T-1"
+        },
+        {
+          "hasConflict": "RISK_NOTICE",
+          "_why": "过敏/严重忌口必须给出醒目风险提示"
+        },
+        {
+          "conflictMention": {
+            "code": "RISK_NOTICE",
+            "text": "洋葱"
+          }
+        },
+        {
+          "path": "variants.safer.members.length",
+          "equals": 3,
+          "_why": "提供候选方案"
+        },
+        {
+          "path": "mayCreateOrder",
+          "isFalse": true
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "菜品不可售 + 优惠券不可用",
+      "request": {
+        "scene": "夜宵拼单",
+        "diningMode": "delivery",
+        "headcount": 2,
+        "totalBudget": 90.0,
+        "location": {
+          "city": "广州市",
+          "keyword": "荔湾区"
+        },
+        "shared": {
+          "enabled": false
+        },
+        "needTableware": false,
+        "confirmation": {
+          "saidConfirmOrder": false
+        },
+        "members": [
+          {
+            "name": "甲",
+            "prefer": [
+              "牛肉"
+            ],
+            "drink": "可乐少冰",
+            "budgetCap": 45
+          },
+          {
+            "name": "乙",
+            "prefer": [
+              "鸡肉"
+            ],
+            "drink": "橙汁常温",
+            "budgetCap": 45
+          }
+        ]
+      },
+      "snapshot": {
+        "store": {
+          "name": "[TEST]夜宵门店",
+          "storeCode": "0000003",
+          "beCode": "BE-T-3",
+          "beType": 2,
+          "orderType": 2
+        },
+        "addressId": "ADDR-T-3",
+        "meals": [
+          {
+            "code": "T-301",
+            "name": "[TEST]牛肉汉堡",
+            "priceFen": 3000,
+            "category": "汉堡",
+            "soldOut": true,
+            "desc": ""
+          },
+          {
+            "code": "T-302",
+            "name": "[TEST]鸡肉汉堡",
+            "priceFen": 2600,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-303",
+            "name": "[TEST]薯条",
+            "priceFen": 1200,
+            "category": "薯条",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-304",
+            "name": "[TEST]可乐",
+            "priceFen": 800,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-305",
+            "name": "[TEST]橙汁",
+            "priceFen": 900,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          }
+        ],
+        "coupons": [
+          {
+            "couponId": "C-T-3",
+            "name": "[TEST]不可用的满减券",
+            "thresholdFen": 20000,
+            "offFen": 5000,
+            "applicable": false
+          }
+        ],
+        "fees": {
+          "deliveryFen": 900,
+          "tablewareFen": 0
+        },
+        "nowTime": {
+          "date": "2026-10-12",
+          "datetime": "2026-10-12T13:20:00"
+        },
+        "priceResult": null
+      },
+      "assert": [
+        {
+          "hasConflict": "SOLD_OUT",
+          "_why": "售罄餐品需说明并排除"
+        },
+        {
+          "noItemMatching": {
+            "member": "甲",
+            "regex": "牛肉汉堡"
+          },
+          "_why": "售罄餐品不会进入候选"
+        },
+        {
+          "hasConflict": "COUPON_NOT_APPLICABLE",
+          "_why": "不可用的券不得默认套用"
+        },
+        {
+          "path": "coupon",
+          "equals": null
+        },
+        {
+          "path": "money.discountYuan",
+          "equals": 0
+        },
+        {
+          "path": "members.length",
+          "equals": 2
+        },
+        {
+          "path": "mayCreateOrder",
+          "isFalse": true
+        }
+      ]
+    },
+    {
+      "id": "D1",
+      "title": "未说「确认下单」—— 绝不创建订单",
+      "request": {
+        "scene": "确认门验证（未确认）",
+        "diningMode": "delivery",
+        "headcount": 2,
+        "totalBudget": 200.0,
+        "location": {
+          "city": "广州市",
+          "keyword": "海珠区"
+        },
+        "shared": {
+          "enabled": false
+        },
+        "needTableware": false,
+        "confirmation": {
+          "saidConfirmOrder": false
+        },
+        "members": [
+          {
+            "name": "甲",
+            "prefer": [
+              "牛肉"
+            ],
+            "drink": "可乐少冰",
+            "budgetCap": 80
+          },
+          {
+            "name": "乙",
+            "prefer": [
+              "鸡肉"
+            ],
+            "drink": "橙汁常温",
+            "budgetCap": 80
+          }
+        ]
+      },
+      "snapshot": {
+        "store": {
+          "name": "[TEST]确认门门店",
+          "storeCode": "0000004",
+          "beCode": "BE-T-4",
+          "beType": 2,
+          "orderType": 2
+        },
+        "addressId": "ADDR-T-4",
+        "meals": [
+          {
+            "code": "T-401",
+            "name": "[TEST]牛肉汉堡",
+            "priceFen": 3000,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-402",
+            "name": "[TEST]鸡肉汉堡",
+            "priceFen": 2600,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-403",
+            "name": "[TEST]薯条",
+            "priceFen": 1200,
+            "category": "薯条",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-404",
+            "name": "[TEST]可乐",
+            "priceFen": 800,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-405",
+            "name": "[TEST]橙汁",
+            "priceFen": 900,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          }
+        ],
+        "coupons": [],
+        "fees": {
+          "deliveryFen": 900,
+          "tablewareFen": 0
+        },
+        "nowTime": {
+          "date": "2026-10-12",
+          "datetime": "2026-10-12T13:20:00"
+        },
+        "priceResult": {
+          "subtotalFen": 8300,
+          "discountFen": 0,
+          "deliveryFen": 900,
+          "tablewareFen": 0,
+          "totalFen": 9200
+        }
+      },
+      "assert": [
+        {
+          "path": "priceSource",
+          "equals": "calculate-price"
+        },
+        {
+          "path": "readyToOrder",
+          "isTrue": true,
+          "_why": "参数与金额都已就绪，唯一缺的是确认"
+        },
+        {
+          "path": "mayCreateOrder",
+          "isFalse": true,
+          "_why": "核心断言：未确认绝不放行"
+        }
+      ]
+    },
+    {
+      "id": "D2",
+      "title": "已说「确认下单」—— 放行",
+      "request": {
+        "scene": "确认门验证（已确认）",
+        "diningMode": "delivery",
+        "headcount": 2,
+        "totalBudget": 200.0,
+        "location": {
+          "city": "广州市",
+          "keyword": "海珠区"
+        },
+        "shared": {
+          "enabled": false
+        },
+        "needTableware": false,
+        "confirmation": {
+          "saidConfirmOrder": true
+        },
+        "members": [
+          {
+            "name": "甲",
+            "prefer": [
+              "牛肉"
+            ],
+            "drink": "可乐少冰",
+            "budgetCap": 80
+          },
+          {
+            "name": "乙",
+            "prefer": [
+              "鸡肉"
+            ],
+            "drink": "橙汁常温",
+            "budgetCap": 80
+          }
+        ]
+      },
+      "snapshot": {
+        "store": {
+          "name": "[TEST]确认门门店",
+          "storeCode": "0000004",
+          "beCode": "BE-T-4",
+          "beType": 2,
+          "orderType": 2
+        },
+        "addressId": "ADDR-T-4",
+        "meals": [
+          {
+            "code": "T-401",
+            "name": "[TEST]牛肉汉堡",
+            "priceFen": 3000,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-402",
+            "name": "[TEST]鸡肉汉堡",
+            "priceFen": 2600,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-403",
+            "name": "[TEST]薯条",
+            "priceFen": 1200,
+            "category": "薯条",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-404",
+            "name": "[TEST]可乐",
+            "priceFen": 800,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-405",
+            "name": "[TEST]橙汁",
+            "priceFen": 900,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          }
+        ],
+        "coupons": [],
+        "fees": {
+          "deliveryFen": 900,
+          "tablewareFen": 0
+        },
+        "nowTime": {
+          "date": "2026-10-12",
+          "datetime": "2026-10-12T13:20:00"
+        },
+        "priceResult": {
+          "subtotalFen": 8300,
+          "discountFen": 0,
+          "deliveryFen": 900,
+          "tablewareFen": 0,
+          "totalFen": 9200
+        }
+      },
+      "assert": [
+        {
+          "path": "readyToOrder",
+          "isTrue": true
+        },
+        {
+          "path": "mayCreateOrder",
+          "isTrue": true,
+          "_why": "已确认 + 无阻断 + 权威金额 → 放行"
+        }
+      ]
+    },
+    {
+      "id": "E1",
+      "title": "严格模式：坚果过敏成员，含花生餐品被黑名单排除（组映射生效）",
+      "request": {
+        "scene": "过敏场景",
+        "diningMode": "group_delivery",
+        "headcount": 2,
+        "totalBudget": 100,
+        "location": {
+          "city": "广州市",
+          "keyword": "荔湾区"
+        },
+        "shared": {
+          "enabled": false
+        },
+        "needTableware": false,
+        "confirmation": {
+          "saidConfirmOrder": false
+        },
+        "members": [
+          {
+            "name": "阿May",
+            "avoid": [
+              "坚果"
+            ],
+            "riskNote": "坚果过敏，严重",
+            "drink": "可乐少冰",
+            "budgetCap": 60
+          },
+          {
+            "name": "阿Ben",
+            "prefer": [
+              "牛肉"
+            ],
+            "drink": "橙汁常温",
+            "budgetCap": 60
+          }
+        ]
+      },
+      "snapshot": {
+        "store": {
+          "name": "[TEST]过敏场景门店",
+          "storeCode": "0000005",
+          "beCode": "BE-T-5",
+          "beType": 6,
+          "orderType": 2
+        },
+        "addressId": "ADDR-T-5",
+        "gmServiceCode": "GM-T-5",
+        "meals": [
+          {
+            "code": "T-501",
+            "name": "[TEST]牛肉汉堡",
+            "priceFen": 3000,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-502",
+            "name": "[TEST]鸡肉汉堡",
+            "priceFen": 2600,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-503",
+            "name": "[TEST]薯条",
+            "priceFen": 1200,
+            "category": "薯条",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-504",
+            "name": "[TEST]鸡块",
+            "priceFen": 1500,
+            "category": "小食",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-505",
+            "name": "[TEST]玉米杯",
+            "priceFen": 900,
+            "category": "小食",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-506",
+            "name": "[TEST]可乐",
+            "priceFen": 800,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-507",
+            "name": "[TEST]花生新地",
+            "priceFen": 1200,
+            "category": "甜品",
+            "soldOut": false,
+            "desc": "含花生碎"
+          },
+          {
+            "code": "T-508",
+            "name": "[TEST]橙汁",
+            "priceFen": 900,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          }
+        ],
+        "coupons": [],
+        "fees": {
+          "deliveryFen": 900,
+          "tablewareFen": 0
+        },
+        "nowTime": {
+          "date": "2026-10-12",
+          "datetime": "2026-10-12T13:20:00"
+        },
+        "priceResult": null
+      },
+      "assert": [
+        {
+          "memberAllergen": {
+            "member": "阿May",
+            "includes": "花生/坚果"
+          },
+          "_why": "写「坚果」也应命中花生/坚果组"
+        },
+        {
+          "hasConflict": "ALLERGEN_BLOCKED",
+          "_why": "命中黑名单需明确告知排除了哪些餐品"
+        },
+        {
+          "conflictMention": {
+            "code": "ALLERGEN_BLOCKED",
+            "text": "阿May"
+          },
+          "_why": "排除说明要指名到成员"
+        },
+        {
+          "noItemMatching": {
+            "member": "阿May",
+            "regex": "花生"
+          },
+          "_why": "含花生餐品绝不进入过敏成员候选"
+        },
+        {
+          "memberAllergen": {
+            "member": "阿Ben",
+            "isNull": true
+          },
+          "_why": "不过度扩大：无过敏成员不受影响"
+        },
+        {
+          "noDuplicateItems": null,
+          "_why": "同一组合内不重复"
+        },
+        {
+          "path": "mayCreateOrder",
+          "isFalse": true,
+          "_why": "未确认 + 无试算价，不放行"
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "title": "严格模式：麸质过敏 → 汉堡全被排除 → 报 NO_CANDIDATE 且提示不得放宽黑名单",
+      "request": {
+        "scene": "过敏场景",
+        "diningMode": "group_delivery",
+        "headcount": 2,
+        "totalBudget": 100,
+        "location": {
+          "city": "广州市",
+          "keyword": "荔湾区"
+        },
+        "shared": {
+          "enabled": false
+        },
+        "needTableware": false,
+        "confirmation": {
+          "saidConfirmOrder": false
+        },
+        "members": [
+          {
+            "name": "阿明",
+            "avoid": [
+              "麸质"
+            ],
+            "drink": "可乐",
+            "budgetCap": 60
+          },
+          {
+            "name": "阿华",
+            "prefer": [
+              "牛肉"
+            ],
+            "drink": "可乐",
+            "budgetCap": 60
+          }
+        ]
+      },
+      "snapshot": {
+        "store": {
+          "name": "[TEST]过敏场景门店",
+          "storeCode": "0000005",
+          "beCode": "BE-T-5",
+          "beType": 6,
+          "orderType": 2
+        },
+        "addressId": "ADDR-T-5",
+        "gmServiceCode": "GM-T-5",
+        "meals": [
+          {
+            "code": "T-601",
+            "name": "[TEST]牛肉汉堡",
+            "priceFen": 3000,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-602",
+            "name": "[TEST]鸡肉汉堡",
+            "priceFen": 2600,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-603",
+            "name": "[TEST]薯条",
+            "priceFen": 1200,
+            "category": "薯条",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-604",
+            "name": "[TEST]鸡块",
+            "priceFen": 1500,
+            "category": "小食",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-605",
+            "name": "[TEST]可乐",
+            "priceFen": 800,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          }
+        ],
+        "coupons": [],
+        "fees": {
+          "deliveryFen": 900,
+          "tablewareFen": 0
+        },
+        "nowTime": {
+          "date": "2026-10-12",
+          "datetime": "2026-10-12T13:20:00"
+        },
+        "priceResult": null
+      },
+      "assert": [
+        {
+          "memberAllergen": {
+            "member": "阿明",
+            "includes": "麸质/小麦"
+          },
+          "_why": "麸质组被正确识别"
+        },
+        {
+          "noItemMatching": {
+            "member": "阿明",
+            "regex": "堡"
+          },
+          "_why": "含面包/堡的餐品一律排除（宁可错杀）"
+        },
+        {
+          "hasConflict": "NO_CANDIDATE",
+          "_why": "候选被清空必须报阻断，不能静默凑单"
+        },
+        {
+          "conflictMention": {
+            "code": "NO_CANDIDATE",
+            "text": "不要为凑单放宽"
+          },
+          "_why": "明确禁止为凑单放宽黑名单"
+        },
+        {
+          "path": "mayCreateOrder",
+          "isFalse": true,
+          "_why": "存在阻断冲突，绝不放行"
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "title": "非严格模式（allergenPolicy.strict=false）：只提示不排除",
+      "request": {
+        "scene": "过敏场景",
+        "diningMode": "group_delivery",
+        "headcount": 2,
+        "totalBudget": 100,
+        "location": {
+          "city": "广州市",
+          "keyword": "荔湾区"
+        },
+        "shared": {
+          "enabled": false
+        },
+        "needTableware": false,
+        "confirmation": {
+          "saidConfirmOrder": false
+        },
+        "members": [
+          {
+            "name": "阿明",
+            "avoid": [
+              "麸质"
+            ],
+            "drink": "可乐",
+            "budgetCap": 60
+          },
+          {
+            "name": "阿华",
+            "prefer": [
+              "牛肉"
+            ],
+            "drink": "可乐",
+            "budgetCap": 60
+          }
+        ],
+        "allergenPolicy": {
+          "strict": false
+        }
+      },
+      "snapshot": {
+        "store": {
+          "name": "[TEST]过敏场景门店",
+          "storeCode": "0000005",
+          "beCode": "BE-T-5",
+          "beType": 6,
+          "orderType": 2
+        },
+        "addressId": "ADDR-T-5",
+        "gmServiceCode": "GM-T-5",
+        "meals": [
+          {
+            "code": "T-601",
+            "name": "[TEST]牛肉汉堡",
+            "priceFen": 3000,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-602",
+            "name": "[TEST]鸡肉汉堡",
+            "priceFen": 2600,
+            "category": "汉堡",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-603",
+            "name": "[TEST]薯条",
+            "priceFen": 1200,
+            "category": "薯条",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-604",
+            "name": "[TEST]鸡块",
+            "priceFen": 1500,
+            "category": "小食",
+            "soldOut": false,
+            "desc": ""
+          },
+          {
+            "code": "T-605",
+            "name": "[TEST]可乐",
+            "priceFen": 800,
+            "category": "饮料",
+            "soldOut": false,
+            "desc": ""
+          }
+        ],
+        "coupons": [],
+        "fees": {
+          "deliveryFen": 900,
+          "tablewareFen": 0
+        },
+        "nowTime": {
+          "date": "2026-10-12",
+          "datetime": "2026-10-12T13:20:00"
+        },
+        "priceResult": null
+      },
+      "assert": [
+        {
+          "path": "allergenPolicy.strict",
+          "isFalse": true,
+          "_why": "发起人显式关闭严格模式"
+        },
+        {
+          "hasConflict": "ALLERGEN_BLOCKED",
+          "_why": "非严格模式仍要提示"
+        },
+        {
+          "conflictMention": {
+            "code": "ALLERGEN_BLOCKED",
+            "text": "建议避开"
+          },
+          "_why": "措辞需区分：非严格模式是建议而非已排除"
+        },
+        {
+          "itemMatching": {
+            "member": "阿明",
+            "regex": "堡"
+          },
+          "_why": "非严格模式下不强制排除"
+        },
+        {
+          "hasConflict": "RISK_NOTICE",
+          "_why": "过敏提示无论如何都要给"
+        }
+      ]
+    }
+  ]
+}

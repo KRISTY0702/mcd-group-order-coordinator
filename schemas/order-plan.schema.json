@@ -1,0 +1,200 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderPlan",
+  "description": "scripts/coordinate.mjs 的输出。金额字段单位为元，保留两位。",
+  "type": "object",
+  "required": ["diningMode", "orderable", "store", "priceSource", "money", "members", "variants", "conflicts", "readyToOrder", "mayCreateOrder", "requiresHumanConfirmation"],
+  "properties": {
+    "generatedAt": { "type": "string" },
+    "scene": { "type": ["string", "null"] },
+    "diningMode": { "type": "string", "enum": ["delivery", "group_delivery", "pickup", "drive_thru", "dine_in"] },
+    "diningLabel": { "type": "string" },
+    "orderable": { "type": "boolean", "description": "false = 该就餐方式不支持下单（如堂食），createOrderDraft 为 null" },
+    "tier": { "type": "string", "description": "命中的官方团餐搭配档位" },
+    "perPersonBudgetYuan": { "type": "number" },
+    "mainstreamFlavor": { "type": ["string", "null"], "description": "群体主流口味，用于「随意」成员兜底匹配" },
+    "store": {
+      "type": "object",
+      "required": ["beType", "orderType"],
+      "properties": {
+        "name": { "type": ["string", "null"] },
+        "storeCode": { "type": ["string", "null"], "pattern": "^\\d*$" },
+        "beCode": { "type": ["string", "null"] },
+        "beType": { "type": "integer", "enum": [1, 2, 5, 6] },
+        "orderType": { "type": "integer", "enum": [1, 2] }
+      }
+    },
+    "priceSource": {
+      "type": "string",
+      "enum": ["calculate-price", "ESTIMATE"],
+      "description": "calculate-price = 权威金额；ESTIMATE = 仅按餐品单价估算，不得用于下单"
+    },
+    "allergenPolicy": {
+      "type": "object",
+      "description": "高危致敏原黑名单策略与生效的致敏原组清单",
+      "properties": {
+        "strict": { "type": "boolean", "description": "true=命中即排除出候选；false=仅提示不排除" },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "id": { "type": "string" }, "label": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "needTableware": { "type": "boolean" },
+    "shared": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "items": { "type": "array", "items": { "$ref": "#/definitions/sharedItem" } },
+        "totalYuan": { "type": "number" },
+        "perHeadYuan": { "type": "number" }
+      }
+    },
+    "coupon": {
+      "type": ["object", "null"],
+      "properties": {
+        "couponId": { "type": ["string", "null"] },
+        "couponCode": { "type": ["string", "null"] },
+        "name": { "type": ["string", "null"] },
+        "offYuan": { "type": "number" }
+      }
+    },
+    "money": {
+      "type": "object",
+      "required": ["subtotalYuan", "discountYuan", "deliveryYuan", "tablewareYuan", "totalYuan", "perPersonYuan"],
+      "properties": {
+        "subtotalYuan": { "type": "number" },
+        "discountYuan": { "type": "number" },
+        "deliveryYuan": { "type": "number" },
+        "tablewareYuan": { "type": "number" },
+        "totalYuan": { "type": "number" },
+        "perPersonYuan": { "type": "number" }
+      }
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "status", "items", "splitYuan"],
+        "properties": {
+          "name": { "type": "string" },
+          "status": { "type": "string", "enum": ["confirmed", "pending"], "description": "pending = 待本人确认（如「随意」成员）" },
+          "items": { "type": "array", "items": { "$ref": "#/definitions/mealItem" } },
+          "priceYuan": { "type": ["number", "null"] },
+          "remarks": { "type": ["string", "null"], "description": "饮品甜度/冰量等备注" },
+          "avoid": { "type": "array", "items": { "type": "string" } },
+          "allergy": { "type": "boolean" },
+          "allergen": {
+            "type": ["object", "null"],
+            "description": "该成员命中高危致敏原黑名单的情况；null 表示无过敏限制",
+            "properties": {
+              "groups": { "type": "array", "items": { "type": "string" }, "description": "命中的致敏原组，如「花生/坚果」" },
+              "blockedCount": { "type": "integer", "description": "被排除的餐品件数" },
+              "blockedMeals": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "groups": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          },
+          "splitYuan": { "type": "number", "description": "AA 分账后该成员应付金额（元）" }
+        }
+      }
+    },
+    "variants": {
+      "type": "object",
+      "required": ["preferred", "safer", "richer"],
+      "properties": {
+        "preferred": { "$ref": "#/definitions/variant" },
+        "safer": { "$ref": "#/definitions/variant" },
+        "richer": { "$ref": "#/definitions/variant" }
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "level", "message"],
+        "properties": {
+          "code": { "type": "string" },
+          "level": { "type": "string", "enum": ["block", "warn"] },
+          "message": { "type": "string" },
+          "hint": { "type": "string" }
+        }
+      }
+    },
+    "readyToOrder": { "type": "boolean", "description": "可下单场景 + 无阻断冲突 + 金额来自 calculate-price" },
+    "mayCreateOrder": { "type": "boolean", "description": "readyToOrder 且发起人已明确确认。只有为 true 才可调 create-order" },
+    "requiresHumanConfirmation": { "type": "boolean", "description": "恒为 true" },
+    "createOrderDraft": {
+      "type": ["object", "null"],
+      "description": "create-order 的参数草稿，字段名与 mcd-mcp 真实参数一致；不可下单场景为 null",
+      "properties": {
+        "storeCode": { "type": ["string", "null"] },
+        "beType": { "type": "integer", "enum": [1, 2, 5, 6] },
+        "orderType": { "type": "integer", "enum": [1, 2] },
+        "beCode": { "type": ["string", "null"] },
+        "addressId": { "type": ["string", "null"] },
+        "takeWayCode": { "type": ["string", "null"] },
+        "gmServiceCode": { "type": ["string", "null"] },
+        "reservationDate": { "type": ["string", "null"] },
+        "needTableware": { "type": "boolean" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["productCode", "quantity"],
+            "properties": { "productCode": { "type": "string" }, "quantity": { "type": "integer", "minimum": 1 } }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "mealItem": {
+      "type": "object",
+      "required": ["code", "name", "priceYuan"],
+      "properties": { "code": { "type": "string" }, "name": { "type": "string" }, "priceYuan": { "type": "number" } }
+    },
+    "sharedItem": {
+      "type": "object",
+      "required": ["code", "name", "quantity"],
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "priceFen": { "type": "number" },
+        "priceYuan": { "type": "number" },
+        "quantity": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "variant": {
+      "type": "object",
+      "required": ["label", "members"],
+      "properties": {
+        "label": { "type": "string" },
+        "goodsYuan": { "type": "number" },
+        "sharedYuan": { "type": "number" },
+        "members": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string" },
+              "items": { "type": "array", "items": { "$ref": "#/definitions/mealItem" } },
+              "priceYuan": { "type": ["number", "null"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}

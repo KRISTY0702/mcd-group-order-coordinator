@@ -1,0 +1,28 @@
+{
+  "_note": "发起人输入样例（对应验证用例 A：4 人办公室午餐外送）。这里的值属于「用户输入」，可随意改；门店、餐品、价格一律不在此文件里，见 mcd-snapshot.example.json。",
+  "scene": "周五办公室午餐",
+  "diningMode": "delivery",
+  "headcount": 4,
+  "totalBudget": 150.0,
+  "location": {
+    "city": "广州市",
+    "keyword": "海珠区琶洲"
+  },
+  "reservationDate": null,
+  "shared": {
+    "enabled": true,
+    "budgetYuan": 30
+  },
+  "needTableware": true,
+  "useCoupons": true,
+  "couponConsent": false,
+  "confirmation": {
+    "saidConfirmOrder": false
+  },
+  "members": [
+    { "name": "小王", "avoid": ["辣"], "prefer": ["牛肉"], "drink": "可乐少冰", "budgetCap": 45 },
+    { "name": "小李", "avoid": [], "prefer": ["蔬菜"], "drink": "橙汁常温", "budgetCap": 40 },
+    { "name": "小赵", "avoid": [], "prefer": [], "drinkOnly": true, "drink": "可乐去冰", "budgetCap": 20 },
+    { "name": "小陈", "prefer": ["随意"], "budgetCap": 40 }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GroupOrderRequest",
+  "description": "发起人输入。金额字段单位为元（不是分）。",
+  "type": "object",
+  "required": ["scene", "diningMode", "headcount", "location", "members"],
+  "properties": {
+    "scene": { "type": "string", "description": "聚餐场景，如「周五办公室午餐」" },
+    "diningMode": {
+      "type": "string",
+      "enum": ["delivery", "group_delivery", "pickup", "drive_thru", "dine_in"],
+      "description": "delivery 外送麦乐送 / group_delivery 外送企业团餐 / pickup 到店自取 / drive_thru 得来速 / dine_in 堂食（不可下单）"
+    },
+    "headcount": { "type": "integer", "minimum": 1 },
+    "totalBudget": { "type": ["number", "null"], "minimum": 0, "description": "总预算（元）。null 表示未设上限，此时不做超限校验" },
+    "location": {
+      "type": "object",
+      "required": ["city"],
+      "properties": {
+        "city": { "type": "string", "description": "城市名，如「广州市」" },
+        "keyword": { "type": ["string", "null"], "description": "地点关键词，query-nearby-stores 的 searchType=2 时需要" }
+      }
+    },
+    "reservationDate": {
+      "type": ["string", "null"],
+      "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}$",
+      "description": "期望送达/取餐时间，格式 yyyy-MM-dd HH:mm；仅 MCP 支持时使用"
+    },
+    "shared": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "description": "是否接受共享小食" },
+        "budgetYuan": { "type": "number", "minimum": 0, "description": "共享小食预算（元）" }
+      }
+    },
+    "needTableware": { "type": "boolean", "description": "是否需要餐具" },
+    "allergenPolicy": {
+      "type": "object",
+      "properties": {
+        "strict": {
+          "type": "boolean",
+          "description": "高危致敏原黑名单严格模式，默认 true。true=命中即排除出候选（不因凑单压力放宽）；false=仅提示不排除，但风险提示照给"
+        }
+      }
+    },
+    "useCoupons": { "type": "boolean", "description": "是否使用账户内已有且适用的券，默认 true" },
+    "couponConsent": { "type": "boolean", "description": "是否已明确同意「领券建议」。未同意时不得建议或执行领券" },
+    "confirmation": {
+      "type": "object",
+      "properties": {
+        "saidConfirmOrder": { "type": "boolean", "description": "发起人是否已明确回复「确认下单」。false 时绝不创建订单" }
+      }
+    },
+    "members": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "avoid": { "type": "array", "items": { "type": "string" }, "description": "忌口或不吃，与餐品名/描述做子串匹配。命中高危致敏原组词（花生/坚果、海鲜/鱼类、乳制品、蛋类、麸质/小麦、芝麻、大豆、芒果）时触发黑名单排除" },
+          "prefer": { "type": "array", "items": { "type": "string" }, "description": "主食/口味偏好，用于候选排序；含「随意」则该成员视为待本人确认" },
+          "drink": { "type": "string", "description": "饮品及甜度/冰量，如「可乐少冰」。修饰符会被拆出作为备注，剩余部分作为饮品偏好" },
+          "drinkOnly": { "type": "boolean", "description": "只要饮料" },
+          "random": { "type": "boolean", "description": "该成员表示「随便/随意」" },
+          "allergy": { "type": "boolean", "description": "过敏或严重忌口。为 true 时只做风险提示，不声称餐品安全" },
+          "riskNote": { "type": ["string", "null"], "description": "风险补充描述，如「对洋葱敏感」" },
+          "budgetCap": { "type": ["number", "null"], "minimum": 0, "description": "该成员个人预算上限（元）" }
+        }
+      }
+    }
+  }
+}
