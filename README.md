@@ -1,4 +1,4 @@
-# 麦友多人点餐协调员 · mcd-group-order-coordinator
+# 【麦聚小帮】多人点餐 & 预算分摊工具 · mcd-group-order-coordinator
 
 ## 项目介绍
 
